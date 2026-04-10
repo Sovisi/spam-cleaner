@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spam Cleaner - Fun on the Ride</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0f0f0f;
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: #1a1a2e;
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #333;
+        }
+        .header h1 { font-size: 18px; color: #ff4444; }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            color: #888;
+        }
+        .user-info img {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+        }
+        .user-info button {
+            background: none;
+            border: 1px solid #555;
+            color: #888;
+            padding: 4px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .user-info button:hover { border-color: #ff4444; color: #ff4444; }
+
+        /* Container */
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Login screen */
+        .login-screen {
+            text-align: center;
+            padding: 80px 20px;
+        }
+        .login-screen h2 {
+            font-size: 28px;
+            color: #ff4444;
+            margin-bottom: 12px;
+        }
+        .login-screen p {
+            color: #888;
+            margin-bottom: 32px;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+        .google-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 28px;
+            background: #fff;
+            color: #333;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: box-shadow 0.2s;
+        }
+        .google-btn:hover { box-shadow: 0 4px 16px rgba(255,255,255,0.1); }
+        .google-btn svg { width: 20px; height: 20px; }
+
+        /* Form */
+        .form-section {
+            background: #1a1a2e;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 6px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid #333;
+            border-radius: 8px;
+            background: #0f0f0f;
+            color: #fff;
+            font-size: 16px;
+            outline: none;
+            margin-bottom: 16px;
+            transition: border-color 0.2s;
+        }
+        input[type="text"]:focus { border-color: #ff4444; }
+        input[type="text"]::placeholder { color: #555; }
+
+        /* Keywords */
+        .keyword-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .chip {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            cursor: pointer;
+            border: 1px solid #444;
+            background: #252540;
+            color: #ccc;
+            transition: all 0.2s;
+            user-select: none;
+        }
+        .chip.active {
+            background: #ff4444;
+            border-color: #ff4444;
+            color: #fff;
+        }
+        .chip:hover { border-color: #ff4444; }
+
+        /* Buttons */
+        .btn {
+            padding: 14px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+        }
+        .btn-search { background: #ff4444; color: #fff; }
+        .btn-search:hover { background: #cc3333; }
+        .btn-search:disabled { background: #555; cursor: not-allowed; }
+        .btn-delete { background: #cc3333; color: #fff; margin-top: 16px; }
+        .btn-delete:hover { background: #aa2222; }
+        .btn-delete:disabled { background: #555; cursor: not-allowed; }
+
+        /* Results */
+        .results { margin-top: 20px; }
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .results-header h2 { font-size: 16px; color: #fff; }
+        .results-count { font-size: 14px; color: #ff4444; font-weight: 600; }
+        .select-all-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+            font-size: 14px;
+            color: #888;
+            cursor: pointer;
+        }
+
+        /* Comment card */
+        .comment-card {
+            background: #1a1a2e;
+            border-radius: 10px;
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            border-left: 3px solid #ff4444;
+        }
+        .comment-card input[type="checkbox"] {
+            margin-top: 4px;
+            width: 18px;
+            height: 18px;
+            accent-color: #ff4444;
+            flex-shrink: 0;
+        }
+        .comment-body { flex: 1; min-width: 0; }
+        .comment-author {
+            font-size: 13px;
+            font-weight: 600;
+            color: #ff6b6b;
+            margin-bottom: 4px;
+        }
+        .comment-text {
+            font-size: 14px;
+            color: #bbb;
+            line-height: 1.4;
+            word-break: break-word;
+        }
+        .reply-badge {
+            display: inline-block;
+            font-size: 11px;
+            background: #333;
+            color: #aaa;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-top: 6px;
+        }
+
+        /* Status */
+        .status-bar {
+            padding: 14px 16px;
+            border-radius: 10px;
+            margin-top: 16px;
+            font-size: 14px;
+            text-align: center;
+        }
+        .status-success { background: #1a3a1a; color: #4caf50; }
+        .status-error { background: #3a1a1a; color: #ff6b6b; }
+        .status-loading { background: #1a1a3a; color: #6b8bff; }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #6b8bff;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .hidden { display: none !important; }
+
+        /* Progress bar */
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #333;
+            border-radius: 3px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: #ff4444;
+            border-radius: 3px;
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+<body>
+
+<!-- ==================== LOGIN SCREEN ==================== -->
+<div id="loginScreen" class="login-screen">
+    <h2>Spam Cleaner</h2>
+    <p>Fun on the Ride — YouTube<br>
+    Inicia sesion con la cuenta de Google que tenga acceso al canal</p>
+    <button class="google-btn" onclick="iniciarSesion()">
+        <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Iniciar sesion con Google
+    </button>
+</div>
+
+<!-- ==================== MAIN APP ==================== -->
+<div id="mainApp" class="hidden">
+    <div class="header">
+        <h1>Spam Cleaner</h1>
+        <div class="user-info">
+            <img id="userPhoto" src="" alt="">
+            <span id="userName"></span>
+            <button onclick="cerrarSesion()">Salir</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="form-section">
+            <label>URL del video de YouTube</label>
+            <input type="text" id="videoUrl" placeholder="https://youtube.com/watch?v=..." autofocus>
+
+            <label>Palabra clave del spam</label>
+            <input type="text" id="customKeyword" placeholder="ej: Caddun, bitcoin profit...">
+
+            <button class="btn btn-search" id="btnSearch" onclick="buscarSpam()">
+                Buscar spam
+            </button>
+        </div>
+
+        <div id="statusBar" class="status-bar hidden"></div>
+
+        <div id="results" class="results hidden">
+            <div class="results-header">
+                <h2>Comentarios spam</h2>
+                <span class="results-count" id="resultsCount"></span>
+            </div>
+
+            <label class="select-all-row" style="text-transform:none; letter-spacing:0;">
+                <input type="checkbox" id="selectAll" checked onchange="toggleSelectAll()" style="width:18px;height:18px;accent-color:#ff4444;">
+                Seleccionar todos
+            </label>
+
+            <div id="commentsList"></div>
+
+            <button class="btn btn-delete" id="btnDelete" onclick="eliminarSpam()">
+                Eliminar seleccionados
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+// =====================================================
+// CONFIGURACION — Reemplazar con tu Client ID
+// =====================================================
+const CLIENT_ID = '443762510816-pjncb4isisa4b1febg4t6bkqg5ceofki.apps.googleusercontent.com';
+const SCOPES = 'https://www.googleapis.com/auth/youtube.force-ssl';
+const API_BASE = 'https://www.googleapis.com/youtube/v3';
+
+const DEFAULT_KEYWORDS = [
+    'whatsapp', 'telegram', 'DM me', 'text me',
+    'inbox me', 'contact me on',
+];
+
+// =====================================================
+// STATE
+// =====================================================
+let accessToken = null;
+let spamThreads = [];
+let currentKeywords = [];
+let tokenClient = null;
+
+// =====================================================
+// AUTH — Google Identity Services
+// =====================================================
+function initGoogleAuth() {
+    tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: CLIENT_ID,
+        scope: SCOPES,
+        callback: onTokenResponse,
+    });
+}
+
+function iniciarSesion() {
+    if (!tokenClient) {
+        alert('Error: Google Identity Services no se ha cargado. Recarga la pagina.');
+        return;
+    }
+    tokenClient.requestAccessToken({ prompt: 'consent' });
+}
+
+function onTokenResponse(response) {
+    if (response.error) {
+        console.error('Auth error:', response);
+        alert('Error al iniciar sesion: ' + (response.error_description || response.error));
+        return;
+    }
+    accessToken = response.access_token;
+
+    // Get user info
+    fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+        headers: { 'Authorization': 'Bearer ' + accessToken }
+    })
+    .then(r => r.json())
+    .then(user => {
+        document.getElementById('userPhoto').src = user.picture || '';
+        document.getElementById('userName').textContent = user.name || user.email;
+        document.getElementById('loginScreen').classList.add('hidden');
+        document.getElementById('mainApp').classList.remove('hidden');
+    })
+    .catch(() => {
+        document.getElementById('loginScreen').classList.add('hidden');
+        document.getElementById('mainApp').classList.remove('hidden');
+    });
+}
+
+function cerrarSesion() {
+    if (accessToken) {
+        google.accounts.oauth2.revoke(accessToken);
+    }
+    accessToken = null;
+    document.getElementById('mainApp').classList.add('hidden');
+    document.getElementById('loginScreen').classList.remove('hidden');
+    document.getElementById('results').classList.add('hidden');
+    hideStatus();
+}
+
+// =====================================================
+// KEYWORDS
+// =====================================================
+
+function getActiveKeywords() {
+    const keywords = [...DEFAULT_KEYWORDS];
+    const custom = document.getElementById('customKeyword').value.trim();
+    if (custom) {
+        custom.split(',').forEach(k => {
+            const trimmed = k.trim();
+            if (trimmed) keywords.push(trimmed);
+        });
+    }
+    return keywords;
+}
+
+// =====================================================
+// YOUTUBE API CALLS
+// =====================================================
+function ytFetch(endpoint, params) {
+    const url = new URL(API_BASE + '/' + endpoint);
+    Object.entries(params).forEach(([k, v]) => {
+        if (v !== undefined && v !== null) url.searchParams.set(k, v);
+    });
+    return fetch(url, {
+        headers: { 'Authorization': 'Bearer ' + accessToken }
+    }).then(r => {
+        if (!r.ok) return r.json().then(err => { throw new Error(err.error?.message || r.statusText); });
+        return r.json();
+    });
+}
+
+function ytPost(endpoint, params) {
+    const url = new URL(API_BASE + '/' + endpoint);
+    Object.entries(params).forEach(([k, v]) => {
+        if (v !== undefined && v !== null) url.searchParams.set(k, v);
+    });
+    return fetch(url, {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + accessToken }
+    }).then(r => {
+        if (!r.ok) return r.json().then(err => { throw new Error(err.error?.message || r.statusText); });
+        if (r.status === 204) return {};
+        return r.json().catch(() => ({}));
+    });
+}
+
+function extraerVideoId(url) {
+    const m = url.match(/(?:v=|\/v\/|youtu\.be\/)([a-zA-Z0-9_-]{11})/) ||
+              url.trim().match(/^([a-zA-Z0-9_-]{11})$/);
+    return m ? m[1] : url.trim();
+}
+
+async function fetchAllComments(videoId) {
+    let comments = [];
+    let pageToken = null;
+
+    do {
+        const data = await ytFetch('commentThreads', {
+            part: 'snippet,replies',
+            videoId: videoId,
+            maxResults: 100,
+            pageToken: pageToken,
+            textFormat: 'plainText',
+        });
+
+        for (const item of (data.items || [])) {
+            const top = item.snippet.topLevelComment;
+            const thread = {
+                threadId: item.id,
+                commentId: top.id,
+                autor: top.snippet.authorDisplayName,
+                texto: top.snippet.textDisplay,
+                fecha: top.snippet.publishedAt,
+                replies: [],
+                repliesSpam: [],
+                matchTop: false,
+            };
+
+            if (item.replies) {
+                for (const reply of item.replies.comments) {
+                    thread.replies.push({
+                        commentId: reply.id,
+                        autor: reply.snippet.authorDisplayName,
+                        texto: reply.snippet.textDisplay,
+                    });
+                }
+            }
+            comments.push(thread);
+        }
+
+        pageToken = data.nextPageToken;
+    } while (pageToken && comments.length < 500);
+
+    return comments;
+}
+
+function filterSpam(comments, keywords) {
+    const results = [];
+    const kwLower = keywords.map(k => k.toLowerCase());
+
+    for (const thread of comments) {
+        const textoLower = thread.texto.toLowerCase();
+        thread.matchTop = kwLower.some(kw => textoLower.includes(kw));
+
+        thread.repliesSpam = thread.replies.filter(reply =>
+            kwLower.some(kw => reply.texto.toLowerCase().includes(kw))
+        );
+
+        if (thread.matchTop || thread.repliesSpam.length > 0) {
+            results.push(thread);
+        }
+    }
+    return results;
+}
+
+// =====================================================
+// UI ACTIONS
+// =====================================================
+async function buscarSpam() {
+    const url = document.getElementById('videoUrl').value.trim();
+    if (!url) { alert('Pega la URL del video'); return; }
+
+    const keywords = getActiveKeywords();
+    if (keywords.length === 0) { alert('Selecciona al menos una palabra clave'); return; }
+    currentKeywords = keywords;
+
+    const btn = document.getElementById('btnSearch');
+    btn.disabled = true;
+    btn.textContent = 'Buscando...';
+    document.getElementById('results').classList.add('hidden');
+    showStatus('Buscando comentarios...', 'loading');
+
+    try {
+        const videoId = extraerVideoId(url);
+        const all = await fetchAllComments(videoId);
+        showStatus(`${all.length} comentarios revisados. Filtrando spam...`, 'loading');
+
+        spamThreads = filterSpam(all, keywords);
+
+        if (spamThreads.length === 0) {
+            showStatus('No se encontro spam con esas palabras clave', 'success');
+            return;
+        }
+
+        hideStatus();
+        renderResults();
+    } catch (err) {
+        showStatus('Error: ' + err.message, 'error');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Buscar spam';
+    }
+}
+
+function renderResults() {
+    document.getElementById('resultsCount').textContent = spamThreads.length + ' encontrados';
+    document.getElementById('selectAll').checked = true;
+
+    const list = document.getElementById('commentsList');
+    list.innerHTML = '';
+
+    spamThreads.forEach(t => {
+        const card = document.createElement('div');
+        card.className = 'comment-card';
+        card.innerHTML = `
+            <input type="checkbox" data-tid="${t.threadId}" data-cid="${t.commentId}" checked>
+            <div class="comment-body">
+                <div class="comment-author">@${escapeHtml(t.autor)}</div>
+                <div class="comment-text">${escapeHtml(t.texto.substring(0, 200))}${t.texto.length > 200 ? '...' : ''}</div>
+                ${t.repliesSpam.map(r =>
+                    `<div class="reply-badge">Reply spam: @${escapeHtml(r.autor)}: ${escapeHtml(r.texto.substring(0, 120))}</div>`
+                ).join('')}
+            </div>
+        `;
+        list.appendChild(card);
+    });
+
+    document.getElementById('results').classList.remove('hidden');
+    updateDeleteButton();
+}
+
+function toggleSelectAll() {
+    const checked = document.getElementById('selectAll').checked;
+    document.querySelectorAll('#commentsList input[type="checkbox"]').forEach(cb => cb.checked = checked);
+    updateDeleteButton();
+}
+
+document.addEventListener('change', e => {
+    if (e.target.matches('#commentsList input[type="checkbox"]')) updateDeleteButton();
+});
+
+function updateDeleteButton() {
+    const selected = document.querySelectorAll('#commentsList input[type="checkbox"]:checked');
+    const btn = document.getElementById('btnDelete');
+    const n = selected.length;
+    btn.textContent = `Eliminar ${n} comentario${n !== 1 ? 's' : ''}`;
+    btn.disabled = n === 0;
+}
+
+async function eliminarSpam() {
+    const checkboxes = Array.from(
+        document.querySelectorAll('#commentsList input[type="checkbox"]:checked')
+    );
+    if (checkboxes.length === 0) return;
+
+    if (!confirm(`Vas a eliminar ${checkboxes.length} comentario(s) spam y banear a sus autores. Continuar?`)) return;
+
+    const btn = document.getElementById('btnDelete');
+    btn.disabled = true;
+    btn.textContent = 'Eliminando...';
+
+    let eliminados = 0;
+    let errores = 0;
+    const total = checkboxes.length;
+
+    showStatus(`Eliminando 0/${total}...`, 'loading');
+
+    for (const cb of checkboxes) {
+        const threadId = cb.dataset.tid;
+        const thread = spamThreads.find(t => t.threadId === threadId);
+        if (!thread) continue;
+
+        try {
+            if (thread.matchTop) {
+                await ytPost('comments/setModerationStatus', {
+                    id: thread.commentId,
+                    moderationStatus: 'rejected',
+                    banAuthor: true,
+                });
+                eliminados++;
+            } else {
+                for (const reply of thread.repliesSpam) {
+                    await ytPost('comments/setModerationStatus', {
+                        id: reply.commentId,
+                        moderationStatus: 'rejected',
+                        banAuthor: true,
+                    });
+                    eliminados++;
+                }
+            }
+        } catch (err) {
+            console.error('Error eliminando:', err);
+            errores++;
+        }
+
+        showStatus(`Eliminando ${eliminados + errores}/${total}...`, 'loading');
+    }
+
+    document.getElementById('results').classList.add('hidden');
+    showStatus(
+        `Eliminados: ${eliminados}` + (errores > 0 ? ` | Errores: ${errores}` : ''),
+        errores > 0 ? 'error' : 'success'
+    );
+}
+
+// =====================================================
+// HELPERS
+// =====================================================
+function showStatus(msg, type) {
+    const bar = document.getElementById('statusBar');
+    bar.className = 'status-bar status-' + type;
+    bar.innerHTML = (type === 'loading' ? '<span class="spinner"></span>' : '') + escapeHtml(msg);
+    bar.classList.remove('hidden');
+}
+
+function hideStatus() {
+    document.getElementById('statusBar').classList.add('hidden');
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// =====================================================
+// INIT
+// =====================================================
+// init
+</script>
+
+<!-- Google Identity Services -->
+<script src="https://accounts.google.com/gsi/client" onload="initGoogleAuth()"></script>
+
+</body>
+</html>
