@@ -447,6 +447,34 @@ function ytPost(endpoint, params) {
     });
 }
 
+function ytDelete(endpoint, params) {
+    const url = new URL(API_BASE + '/' + endpoint);
+    Object.entries(params).forEach(([k, v]) => {
+        if (v !== undefined && v !== null) url.searchParams.set(k, v);
+    });
+    return fetch(url, {
+        method: 'DELETE',
+        headers: { 'Authorization': 'Bearer ' + accessToken }
+    }).then(r => {
+        if (!r.ok) return r.json().then(err => { throw new Error(err.error?.message || r.statusText); });
+        return {};
+    });
+}
+
+async function eliminarComentario(commentId) {
+    // Try reject + ban first, fallback to delete
+    try {
+        await ytPost('comments/setModerationStatus', {
+            id: commentId,
+            moderationStatus: 'rejected',
+            banAuthor: true,
+        });
+    } catch (e) {
+        // Fallback: direct delete (works for own channel comments too)
+        await ytDelete('comments', { id: commentId });
+    }
+}
+
 function extraerVideoId(url) {
     const m = url.match(/(?:v=|\/v\/|youtu\.be\/)([a-zA-Z0-9_-]{11})/) ||
               url.trim().match(/^([a-zA-Z0-9_-]{11})$/);
@@ -625,19 +653,11 @@ async function eliminarSpam() {
 
         try {
             if (thread.matchTop) {
-                await ytPost('comments/setModerationStatus', {
-                    id: thread.commentId,
-                    moderationStatus: 'rejected',
-                    banAuthor: true,
-                });
+                await eliminarComentario(thread.commentId);
                 eliminados++;
             } else {
                 for (const reply of thread.repliesSpam) {
-                    await ytPost('comments/setModerationStatus', {
-                        id: reply.commentId,
-                        moderationStatus: 'rejected',
-                        banAuthor: true,
-                    });
+                    await eliminarComentario(reply.commentId);
                     eliminados++;
                 }
             }
@@ -687,4 +707,3 @@ function escapeHtml(text) {
 
 </body>
 </html>
-<!-- trigger build -->
