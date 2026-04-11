@@ -372,14 +372,25 @@ function onTokenResponse(response) {
     }
     accessToken = response.access_token;
 
-    // Get user info
-    fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+    // Get YouTube channel info (not Google account — we need the active YT channel)
+    fetch('https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true', {
         headers: { 'Authorization': 'Bearer ' + accessToken }
     })
     .then(r => r.json())
-    .then(user => {
-        document.getElementById('userPhoto').src = user.picture || '';
-        document.getElementById('userName').textContent = user.name || user.email;
+    .then(data => {
+        const channel = data.items && data.items[0];
+        if (channel) {
+            document.getElementById('userPhoto').src = channel.snippet.thumbnails?.default?.url || '';
+            document.getElementById('userName').textContent = channel.snippet.title;
+            // Warn if not the expected channel
+            const title = channel.snippet.title.toLowerCase();
+            if (!title.includes('fun on the ride') && !title.includes('funontheride') && !title.includes('rodrigo arnedo')) {
+                alert('⚠️ Canal activo: "' + channel.snippet.title + '"\n\nEste NO parece ser el canal FunOntheRide.\nCierra sesion y vuelve a entrar seleccionando la Brand Account correcta.');
+            }
+        } else {
+            document.getElementById('userName').textContent = 'Sin canal';
+            alert('⚠️ No se encontro ningun canal de YouTube asociado a esta cuenta.\nCierra sesion y selecciona la Brand Account FunOntheRide.');
+        }
         document.getElementById('loginScreen').classList.add('hidden');
         document.getElementById('mainApp').classList.remove('hidden');
     })
