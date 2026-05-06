@@ -331,6 +331,7 @@
 const CLIENT_ID = '443762510816-pjncb4isisa4b1febg4t6bkqg5ceofki.apps.googleusercontent.com';
 const SCOPES = 'https://www.googleapis.com/auth/youtube.force-ssl';
 const API_BASE = 'https://www.googleapis.com/youtube/v3';
+const CHANNEL_ID = 'UCRzqHl5MGQ97NBfOPTS2Yrw'; // FunOntheRide (Brand Account)
 
 const DEFAULT_KEYWORDS = [
     'whatsapp', 'telegram', 'DM me', 'text me',
@@ -361,7 +362,7 @@ function iniciarSesion() {
         alert('Error: Google Identity Services no se ha cargado. Recarga la pagina.');
         return;
     }
-    tokenClient.requestAccessToken({ prompt: 'consent' });
+    tokenClient.requestAccessToken({ prompt: 'select_account' });
 }
 
 function onTokenResponse(response) {
@@ -372,8 +373,10 @@ function onTokenResponse(response) {
     }
     accessToken = response.access_token;
 
-    // Get YouTube channel info (not Google account — we need the active YT channel)
-    fetch('https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true', {
+    // Brand Accounts no aparecen en channels?mine=true porque GIS autentica como Gmail
+    // personal. Pedimos los datos publicos del canal por ID (el OAuth sigue activo para
+    // moderar via comments.setModerationStatus).
+    fetch(API_BASE + '/channels?part=snippet&id=' + CHANNEL_ID, {
         headers: { 'Authorization': 'Bearer ' + accessToken }
     })
     .then(r => r.json())
@@ -382,19 +385,14 @@ function onTokenResponse(response) {
         if (channel) {
             document.getElementById('userPhoto').src = channel.snippet.thumbnails?.default?.url || '';
             document.getElementById('userName').textContent = channel.snippet.title;
-            // Warn if not the expected channel
-            const title = channel.snippet.title.toLowerCase();
-            if (!title.includes('fun on the ride') && !title.includes('funontheride') && !title.includes('rodrigo arnedo')) {
-                alert('⚠️ Canal activo: "' + channel.snippet.title + '"\n\nEste NO parece ser el canal FunOntheRide.\nCierra sesion y vuelve a entrar seleccionando la Brand Account correcta.');
-            }
         } else {
-            document.getElementById('userName').textContent = 'Sin canal';
-            alert('⚠️ No se encontro ningun canal de YouTube asociado a esta cuenta.\nCierra sesion y selecciona la Brand Account FunOntheRide.');
+            document.getElementById('userName').textContent = 'FunOntheRide';
         }
         document.getElementById('loginScreen').classList.add('hidden');
         document.getElementById('mainApp').classList.remove('hidden');
     })
     .catch(() => {
+        document.getElementById('userName').textContent = 'FunOntheRide';
         document.getElementById('loginScreen').classList.add('hidden');
         document.getElementById('mainApp').classList.remove('hidden');
     });
